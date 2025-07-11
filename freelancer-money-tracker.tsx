@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, TrendingUp, Calendar, Users, CreditCard, Target, Moon, Sun, Edit2, Trash2, Check, X } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -546,15 +548,20 @@ const FreelancerMoneyTracker = () => {
     await loadAllData();
   };
 
-  const StatCard = ({ title, value, icon: Icon, color = "bg-white", textColor = "text-gray-900" }) => (
-    <div className={`${color} ${darkMode ? 'bg-gray-800 text-white' : ''} rounded-2xl p-6 shadow-sm border border-gray-100 ${darkMode ? 'border-gray-700' : ''}`}>
+  const StatCard = ({ title, value, icon: Icon, color = "bg-card", textColor = "text-white", gradient = false }) => (
+    <div className={
+      `${gradient ? 'bg-gradient-to-r from-gradientStart to-gradientEnd' : color} 
+      rounded-2xl p-6 border border-gray-800 shadow-card 
+      hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out 
+      min-h-24 flex flex-col justify-between`
+    }>
       <div className="flex items-center justify-between">
         <div>
-          <p className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{title}</p>
-          <p className={`text-2xl font-bold mt-2 ${textColor} ${darkMode ? 'text-white' : ''}`}>{value}</p>
+          <p className="text-sm font-medium text-gray-400">{title}</p>
+          <p className={`text-3xl font-bold mt-2 ${textColor}`}>{value}</p>
         </div>
-        <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-          <Icon className={`w-6 h-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+        <div className={`p-3 rounded-xl bg-background/60`}>
+          <Icon className="w-6 h-6 text-accent" />
         </div>
       </div>
     </div>
@@ -1026,1213 +1033,1293 @@ const FreelancerMoneyTracker = () => {
     };
   };
 
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${
-      darkMode 
-        ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
-        : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
-    }`}>
-      {/* Header */}
-      <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white/80 border-gray-200'} backdrop-blur-sm border-b sticky top-0 z-10`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">💰</span>
-              </div>
-              <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Freelancer Tracker
-              </h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`p-2 rounded-lg transition-colors ${
-                  darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-          
-          {/* Navigation */}
-          <div className="flex space-x-1 pb-4">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                  activeTab === tab.id
-                    ? darkMode 
-                      ? 'bg-orange-500 text-white shadow-lg' 
-                      : 'bg-orange-500 text-white shadow-lg'
-                    : darkMode
-                      ? 'text-gray-300 hover:bg-gray-700'
-                      : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
+  // Sidebar component
+  const Sidebar = () => (
+    <aside className="hidden md:flex flex-col w-56 h-screen fixed top-0 left-0 bg-background shadow-card z-20 rounded-tr-2xl rounded-br-2xl border-r border-gray-800">
+      <div className="flex items-center justify-center h-20 border-b border-gray-800">
+        <div className="w-12 h-12 bg-gradient-to-r from-gradientStart to-gradientEnd rounded-2xl flex items-center justify-center">
+          <span className="text-white font-bold text-2xl">💰</span>
+        </div>
+        <span className="ml-3 text-white text-xl font-bold">Finance</span>
+      </div>
+      <nav className="flex-1 flex flex-col mt-8 space-y-2 px-4">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center px-4 py-3 rounded-xl transition-colors font-medium text-lg space-x-3 ${activeTab === tab.id ? 'bg-gradient-to-r from-gradientStart to-gradientEnd text-white shadow-card' : 'text-gray-400 hover:bg-card hover:text-white'}`}
+          >
+            <tab.icon className="w-6 h-6" />
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="mt-auto mb-8 px-4">
+        <div className="flex items-center space-x-3">
+          <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" className="w-10 h-10 rounded-full border-2 border-accent" />
+          <div>
+            <div className="text-white font-semibold">Simon K. Jimmy</div>
+            <div className="text-xs text-gray-400">Mortgage consultant</div>
           </div>
         </div>
       </div>
+    </aside>
+  );
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading your financial data...</p>
-            </div>
-          </div>
-        )}
+  // Header component
+  const Header = () => (
+    <header className="sticky top-0 z-10 w-full bg-background/80 backdrop-blur border-b border-gray-800 flex items-center h-20 px-6 md:pl-64">
+      <div className="flex-1 flex items-center space-x-6">
+        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        <span className="text-gray-400 text-lg hidden md:inline">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+      </div>
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        className="p-2 rounded-lg transition-colors bg-card text-accent hover:bg-gray-900"
+      >
+        {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </button>
+    </header>
+  );
 
-        {!loading && activeTab === 'dashboard' && (
-          <div className="space-y-8">
-            <div>
-              <h2 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                The vibes are immaculate
-              </h2>
-              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Finally, a money app that doesn't give you the ick
-              </p>
-            </div>
+  // MainContent wrapper
+  const MainContent = ({ children }) => (
+    <main className="md:ml-56 pt-8 px-4 md:px-8 bg-background min-h-screen">
+      {children}
+    </main>
+  );
 
-            {/* Daily Goal Calculator - Prominently Displayed */}
-            <DailyGoalCalculator />
+  // Add this inside the dashboard (e.g., after the stats grid)
+  // Prepare spendings data by category
+  const spendingsByCategory = [
+    { name: 'Housing', value: 3452, color: '#B22CFF' },
+    { name: 'Personal', value: 2200, color: '#1D8FFF' },
+    { name: 'Transportation', value: 2190, color: '#FFB800' },
+  ];
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard
-                title="Total Income This Month"
-                value={`$${currentMonthIncome.toLocaleString()}`}
-                icon={TrendingUp}
-              />
-              <StatCard
-                title="Pending Payments"
-                value={`$${totalPending.toLocaleString()}`}
-                icon={Calendar}
-              />
-              <StatCard
-                title="Daily Target"
-                value={`$${dailyTarget.toFixed(0)}`}
-                icon={Target}
-              />
-              <StatCard
-                title="Days Left"
-                value={`${daysLeft} days`}
-                icon={Calendar}
-              />
-            </div>
+  // Add this inside the dashboard (e.g., after the spendings pie chart)
+  // Mock data for income & expenses over time
+  const incomeExpensesData = [
+    { month: 'Jan', income: 12000, expenses: 8000 },
+    { month: 'Feb', income: 15000, expenses: 9000 },
+    { month: 'Mar', income: 10000, expenses: 7000 },
+    { month: 'Apr', income: 18000, expenses: 12000 },
+    { month: 'May', income: 14000, expenses: 9500 },
+    { month: 'Jun', income: 20000, expenses: 11000 },
+    { month: 'Jul', income: 17000, expenses: 10500 },
+    { month: 'Aug', income: 16000, expenses: 9000 },
+    { month: 'Sep', income: 19000, expenses: 12000 },
+    { month: 'Oct', income: 21000, expenses: 13000 },
+    { month: 'Nov', income: 22000, expenses: 14000 },
+    { month: 'Dec', income: 25000, expenses: 15000 },
+  ];
 
-            {/* Goal Progress */}
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-              <h3 className={`text-xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Goal Progress</h3>
-              {data.goals.map((goal) => (
-                <ProgressBar
-                  key={goal.id}
-                  current={goal.current}
-                  target={goal.target}
-                  color={goal.color}
-                  label={goal.name}
-                />
-              ))}
-            </div>
+  // Mock data for asset allocation
+  const assetData = [
+    { name: 'Gold', value: 15700, color: '#FFB800' },
+    { name: 'Stock', value: 22500, color: '#1D8FFF' },
+    { name: 'Warehouse', value: 120000, color: '#B22CFF' },
+    { name: 'Land', value: 135000, color: '#00A67E' },
+  ];
 
-            {/* Motivational Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 font-bold">✓</span>
-                  </div>
-                  <div>
-                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      You're {((currentMonthIncome / (totalBills + remainingForGoals)) * 100).toFixed(0)}% towards your monthly targets!
-                    </p>
-                    <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Keep up the momentum 🚀
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-bold">💡</span>
-                  </div>
-                  <div>
-                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {totalPending > 0 ? `$${totalPending.toLocaleString()} incoming from clients` : 'All payments up to date!'}
-                    </p>
-                    <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {totalPending > 0 ? 'Money on the way 💰' : 'Time to hustle for more 💪'}
-                    </p>
-                  </div>
-                </div>
+  return (
+    <div className="bg-background min-h-screen flex">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <MainContent>
+          {/* Existing dashboard content starts here */}
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading your financial data...</p>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'income' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Income Tracking</h2>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowAllocationRules(true)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                    darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <Target className="w-4 h-4" />
-                  <span>Allocation Rules</span>
-                </button>
-                <button
-                  onClick={() => setShowAddIncome(true)}
-                  className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Income</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Allocation Rules Modal */}
-            {showAllocationRules && (
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Income Allocation Rules</h3>
-                  <button
-                    onClick={() => setShowAllocationRules(false)}
-                    className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Set rules to automatically categorize income based on the day of the month. Leave category empty when adding income to use these rules.
+          {!loading && activeTab === 'dashboard' && (
+            <div className="space-y-8">
+              <div>
+                <h2 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  The vibes are immaculate
+                </h2>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Finally, a money app that doesn't give you the ick
                 </p>
-                
-                <div className="space-y-4">
-                  {allocationRules.map((rule) => (
-                    <div key={rule.id} className="grid grid-cols-5 gap-3 items-center">
-                      <input
-                        type="text"
-                        placeholder="Category Name"
-                        value={rule.name}
-                        onChange={(e) => updateAllocationRule(rule.id, 'name', e.target.value)}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Days (e.g., 1-15)"
-                        value={rule.days}
-                        onChange={(e) => updateAllocationRule(rule.id, 'days', e.target.value)}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      />
-                      <input
-                        type="number"
-                        placeholder="%"
-                        value={rule.percentage}
-                        onChange={(e) => updateAllocationRule(rule.id, 'percentage', parseInt(e.target.value) || 0)}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      />
-                      <select
-                        value={rule.color}
-                        onChange={(e) => updateAllocationRule(rule.id, 'color', e.target.value)}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      >
-                        <option value="bg-red-500">Red</option>
-                        <option value="bg-blue-500">Blue</option>
-                        <option value="bg-green-500">Green</option>
-                        <option value="bg-purple-500">Purple</option>
-                        <option value="bg-yellow-500">Yellow</option>
-                        <option value="bg-pink-500">Pink</option>
-                        <option value="bg-indigo-500">Indigo</option>
-                        <option value="bg-gray-500">Gray</option>
-                      </select>
-                      <button
-                        onClick={() => deleteAllocationRule(rule.id)}
-                        className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-red-400' : 'hover:bg-gray-100 text-red-500'}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="flex space-x-3 mt-4">
-                  <button
-                    onClick={addAllocationRule}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    Add Rule
-                  </button>
-                  <button
-                    onClick={() => setShowAllocationRules(false)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  >
-                    Close
-                  </button>
-                </div>
               </div>
-            )}
 
-            {showAddIncome && (
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add Income</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="number"
-                    placeholder="Amount"
-                    value={newIncome.amount}
-                    onChange={(e) => setNewIncome({...newIncome, amount: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <input
-                    type="date"
-                    value={newIncome.date}
-                    onChange={(e) => setNewIncome({...newIncome, date: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Client Name (optional)"
-                    value={newIncome.client}
-                    onChange={(e) => setNewIncome({...newIncome, client: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <select
-                    value={newIncome.category}
-                    onChange={(e) => setNewIncome({...newIncome, category: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  >
-                    <option value="">Auto-categorize (use allocation rules)</option>
-                    {allocationRules.map(rule => (
-                      <option key={rule.id} value={rule.name}>{rule.name}</option>
-                    ))}
-                    <option value="General">General</option>
-                    <option value="Freelance">Freelance</option>
-                    <option value="Investment">Investment</option>
-                    <option value="Bonus">Bonus</option>
-                  </select>
-                  <select
-                    value={newIncome.goalId}
-                    onChange={(e) => setNewIncome({...newIncome, goalId: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  >
-                    <option value="">Don't assign to goal</option>
-                    {data.goals.map(goal => (
-                      <option key={goal.id} value={goal.id}>
-                        {goal.name} (${goal.current.toLocaleString()}/${goal.target.toLocaleString()})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex space-x-3 mt-4">
-                  <button
-                    onClick={addIncome}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    Add Income
-                  </button>
-                  <button
-                    onClick={() => setShowAddIncome(false)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  >
-                    Cancel
-                  </button>
-                </div>
+              {/* Daily Goal Calculator - Prominently Displayed */}
+              <DailyGoalCalculator />
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard
+                  title="Total Income This Month"
+                  value={`$${currentMonthIncome.toLocaleString()}`}
+                  icon={TrendingUp}
+                  gradient={true}
+                  textColor="text-white"
+                />
+                <StatCard
+                  title="Pending Payments"
+                  value={`$${totalPending.toLocaleString()}`}
+                  icon={Calendar}
+                />
+                <StatCard
+                  title="Daily Target"
+                  value={`$${dailyTarget.toFixed(0)}`}
+                  icon={Target}
+                />
+                <StatCard
+                  title="Days Left"
+                  value={`${daysLeft} days`}
+                  icon={Calendar}
+                />
               </div>
-            )}
 
-            <div className="grid gap-4">
-              {data.income.map((income) => (
-                <div key={income.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'} flex justify-between items-center`}>
-                  {editingIncome && editingIncome.id === income.id ? (
-                    // Edit mode
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
-                      <input
-                        type="number"
-                        placeholder="Amount"
-                        value={editingIncome.amount}
-                        onChange={(e) => setEditingIncome({...editingIncome, amount: e.target.value})}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      />
-                      <input
-                        type="date"
-                        value={editingIncome.date}
-                        onChange={(e) => setEditingIncome({...editingIncome, date: e.target.value})}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Client"
-                        value={editingIncome.client}
-                        onChange={(e) => setEditingIncome({...editingIncome, client: e.target.value})}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      />
-                      <select
-                        value={editingIncome.category}
-                        onChange={(e) => setEditingIncome({...editingIncome, category: e.target.value})}
-                        className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                      >
-                        {allocationRules.map(rule => (
-                          <option key={rule.id} value={rule.name}>{rule.name}</option>
-                        ))}
-                        <option value="General">General</option>
-                        <option value="Freelance">Freelance</option>
-                        <option value="Investment">Investment</option>
-                        <option value="Bonus">Bonus</option>
-                      </select>
+              {/* Goal Progress */}
+              <div className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                <h3 className="text-xl font-bold mb-6 text-white">Goal Progress</h3>
+                {data.goals.map((goal) => (
+                  <ProgressBar
+                    key={goal.id}
+                    current={goal.current}
+                    target={goal.target}
+                    color={goal.color}
+                    label={goal.name}
+                  />
+                ))}
+              </div>
+
+              {/* Motivational Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 font-bold">✓</span>
                     </div>
-                  ) : (
-                    // Display mode
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <span className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                          ${income.amount.toLocaleString()}
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(income.category)} text-white`}>
-                          {income.category}
-                        </span>
-                      </div>
-                      <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                        {income.client} • {new Date(income.date).toLocaleDateString()}
+                    <div>
+                      <p className="font-medium text-white">
+                        You're {((currentMonthIncome / (totalBills + remainingForGoals)) * 100).toFixed(0)}% towards your monthly targets!
+                      </p>
+                      <p className="text-sm mt-1 text-gray-400">
+                        Keep up the momentum 🚀
                       </p>
                     </div>
-                  )}
+                  </div>
+                </div>
+                {/* Add more motivational cards as needed, using the same style */}
+              </div>
+
+              {/* Spendings by Category */}
+              <div className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                <h3 className="text-lg font-semibold mb-4 text-white">Spendings by Category</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={spendingsByCategory}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={4}
+                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    >
+                      {spendingsByCategory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: '#1A1C23', border: 'none', color: '#fff' }} />
+                    <Legend iconType="circle" wrapperStyle={{ color: '#fff' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Income & Expenses Over Time */}
+              <div className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                <h3 className="text-lg font-semibold mb-4 text-white">Income & Expenses Over Time</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={incomeExpensesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#222" />
+                    <XAxis dataKey="month" stroke="#9CA3AF" />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip contentStyle={{ background: '#1A1C23', border: 'none', color: '#fff' }} />
+                    <Legend iconType="circle" wrapperStyle={{ color: '#fff' }} />
+                    <Line type="monotone" dataKey="income" stroke="#1D8FFF" strokeWidth={3} dot={false} name="Income" />
+                    <Line type="monotone" dataKey="expenses" stroke="#FF3EA5" strokeWidth={3} dot={false} name="Expenses" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Asset Allocation */}
+              <div className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                <h3 className="text-lg font-semibold mb-4 text-white">Asset Allocation</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={assetData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={4}
+                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    >
+                      {assetData.map((entry, index) => (
+                        <Cell key={`cell-asset-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: '#1A1C23', border: 'none', color: '#fff' }} />
+                    <Legend iconType="circle" wrapperStyle={{ color: '#fff' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'income' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Income Tracking</h2>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowAllocationRules(true)}
+                    className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                      darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Target className="w-4 h-4" />
+                    <span>Allocation Rules</span>
+                  </button>
+                  <button
+                    onClick={() => setShowAddIncome(true)}
+                    className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Income</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Allocation Rules Modal */}
+              {showAllocationRules && (
+                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Income Allocation Rules</h3>
+                    <button
+                      onClick={() => setShowAllocationRules(false)}
+                      className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Set rules to automatically categorize income based on the day of the month. Leave category empty when adding income to use these rules.
+                  </p>
                   
-                  <div className="flex space-x-2">
-                    {editingIncome && editingIncome.id === income.id ? (
-                      <>
-                        <button
-                          onClick={updateIncome}
-                          className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition-colors"
+                  <div className="space-y-4">
+                    {allocationRules.map((rule) => (
+                      <div key={rule.id} className="grid grid-cols-5 gap-3 items-center">
+                        <input
+                          type="text"
+                          placeholder="Category Name"
+                          value={rule.name}
+                          onChange={(e) => updateAllocationRule(rule.id, 'name', e.target.value)}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Days (e.g., 1-15)"
+                          value={rule.days}
+                          onChange={(e) => updateAllocationRule(rule.id, 'days', e.target.value)}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        />
+                        <input
+                          type="number"
+                          placeholder="%"
+                          value={rule.percentage}
+                          onChange={(e) => updateAllocationRule(rule.id, 'percentage', parseInt(e.target.value) || 0)}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        />
+                        <select
+                          value={rule.color}
+                          onChange={(e) => updateAllocationRule(rule.id, 'color', e.target.value)}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                         >
-                          <Check className="w-4 h-4" />
-                        </button>
+                          <option value="bg-red-500">Red</option>
+                          <option value="bg-blue-500">Blue</option>
+                          <option value="bg-green-500">Green</option>
+                          <option value="bg-purple-500">Purple</option>
+                          <option value="bg-yellow-500">Yellow</option>
+                          <option value="bg-pink-500">Pink</option>
+                          <option value="bg-indigo-500">Indigo</option>
+                          <option value="bg-gray-500">Gray</option>
+                        </select>
                         <button
-                          onClick={cancelEditingIncome}
-                          className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => startEditingIncome(income)}
-                          className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteItem('income', income.id)}
+                          onClick={() => deleteAllocationRule(rule.id)}
                           className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-red-400' : 'hover:bg-gray-100 text-red-500'}`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      </>
-                    )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex space-x-3 mt-4">
+                    <button
+                      onClick={addAllocationRule}
+                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Add Rule
+                    </button>
+                    <button
+                      onClick={() => setShowAllocationRules(false)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      Close
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
 
-            {/* Income Summary */}
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-              <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Income Summary</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-                    ${currentMonthIncome.toLocaleString()}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>This Month</p>
-                </div>
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                    ${data.income.reduce((sum, income) => sum + income.amount, 0).toLocaleString()}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total All Time</p>
-                </div>
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-                    {data.income.length}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Entries</p>
-                </div>
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-                    ${(currentMonthIncome / Math.max(1, new Date().getDate())).toFixed(0)}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Daily Average</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'goals' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Financial Goals</h2>
-              <button
-                onClick={() => setShowAddGoal(true)}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Goal</span>
-              </button>
-            </div>
-
-            {showAddGoal && (
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add New Goal</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Goal Name"
-                    value={newGoal.name}
-                    onChange={(e) => setNewGoal({...newGoal, name: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <input
-                    type="number"
-                    placeholder="Amount Needed"
-                    value={newGoal.target}
-                    onChange={(e) => setNewGoal({...newGoal, target: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <input
-                    type="date"
-                    placeholder="Deadline (optional)"
-                    value={newGoal.deadline}
-                    onChange={(e) => setNewGoal({...newGoal, deadline: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                </div>
-                <div className="flex space-x-3 mt-4">
-                  <button
-                    onClick={addGoal}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    Add Goal
-                  </button>
-                  <button
-                    onClick={() => setShowAddGoal(false)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="grid gap-4">
-              {data.goals.map((goal) => (
-                <div key={goal.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                  <GoalProgressBar goal={goal} />
-                  
-                  {editingGoal && editingGoal.id === goal.id ? (
-                    // Edit mode
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input
-                          type="text"
-                          placeholder="Goal Name"
-                          value={editingGoal.name}
-                          onChange={(e) => setEditingGoal({...editingGoal, name: e.target.value})}
-                          className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                        />
-                        <input
-                          type="number"
-                          placeholder="Amount Needed"
-                          value={editingGoal.target}
-                          onChange={(e) => setEditingGoal({...editingGoal, target: e.target.value})}
-                          className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                        />
-                        <input
-                          type="date"
-                          placeholder="Deadline"
-                          value={editingGoal.deadline}
-                          onChange={(e) => setEditingGoal({...editingGoal, deadline: e.target.value})}
-                          className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                        />
-                      </div>
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={updateGoal}
-                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                        >
-                          <Check className="w-4 h-4 inline mr-2" />
-                          Save
-                        </button>
-                        <button
-                          onClick={cancelEditingGoal}
-                          className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                        >
-                          <X className="w-4 h-4 inline mr-2" />
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // Display mode - show goal actions
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => startEditingGoal(goal)}
-                          className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setShowGoalAssignment(goal.id)}
-                          className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
-                        >
-                          Assign Money
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => deleteItem('goals', goal.id)}
-                        className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                  
-                  {/* Goal Assignment Modal */}
-                  {showGoalAssignment === goal.id && (
-                    <div className="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="number"
-                          placeholder="Add money to goal"
-                          value={goalAssignment.amount}
-                          onChange={(e) => setGoalAssignment({ amount: e.target.value, goalId: goalAssignment.goalId })}
-                          className={`flex-1 px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                        />
-                        <button
-                          onClick={() => assignMoneyToGoal(goal.id)}
-                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
-                        >
-                          Assign
-                        </button>
-                        <button
-                          onClick={() => setShowGoalAssignment(null)}
-                          className={`px-4 py-2 rounded-lg transition-colors text-sm ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Goals Summary */}
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-              <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Goals Summary</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                    {data.goals.length}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Goals</p>
-                </div>
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-                    ${totalGoalsCurrent.toLocaleString()}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Saved</p>
-                </div>
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-                    ${remainingForGoals.toLocaleString()}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Still Needed</p>
-                </div>
-                <div className="text-center">
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-                    {data.goals.filter(g => (g.current / g.target) * 100 >= 100).length}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Completed</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'clients' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Pending Payments</h2>
-              <button
-                onClick={() => setShowAddPending(true)}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Payment</span>
-              </button>
-            </div>
-
-            {showAddPending && (
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add Pending Payment</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Client Name"
-                    value={newPending.client}
-                    onChange={(e) => setNewPending({...newPending, client: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <input
-                    type="number"
-                    placeholder="Amount"
-                    value={newPending.amount}
-                    onChange={(e) => setNewPending({...newPending, amount: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <input
-                    type="date"
-                    placeholder="Due Date"
-                    value={newPending.dueDate}
-                    onChange={(e) => setNewPending({...newPending, dueDate: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <select
-                    value={newPending.goalId}
-                    onChange={(e) => setNewPending({...newPending, goalId: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  >
-                    <option value="">Don't assign to goal</option>
-                    {data.goals.map(goal => (
-                      <option key={goal.id} value={goal.id}>
-                        {goal.name} (${goal.current.toLocaleString()}/${goal.target.toLocaleString()})
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={newPending.billId}
-                    onChange={(e) => setNewPending({...newPending, billId: e.target.value})}
-                    className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  >
-                    <option value="">Don't assign to bill</option>
-                    {data.bills.map(bill => (
-                      <option key={bill.id} value={bill.id}>
-                        {bill.name} - ${bill.amount.toLocaleString()} ({bill.paid ? 'Paid' : 'Unpaid'})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex space-x-3 mt-4">
-                  <button
-                    onClick={addPendingPayment}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    Add Payment
-                  </button>
-                  <button
-                    onClick={() => setShowAddPending(false)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Assign Modal for Received Payment */}
-            {showPaymentReceived !== null && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div className={`${darkMode ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-8 shadow-lg w-full max-w-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Assign Received Payment</h3>
-                  <p className={`mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>How do you want to assign this money?</p>
-                  <input
-                    type="number"
-                    placeholder="Amount"
-                    value={paymentReceivedAmount.amount}
-                    onChange={e => setPaymentReceivedAmount({ amount: e.target.value })}
-                    className={`mb-4 px-4 py-2 rounded-lg border w-full ${darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                  />
-                  <div className="mb-4">
-                    <label className={`block mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Assign to Goal (optional):</label>
+              {showAddIncome && (
+                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add Income</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="number"
+                      placeholder="Amount"
+                      value={newIncome.amount}
+                      onChange={(e) => setNewIncome({...newIncome, amount: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <input
+                      type="date"
+                      value={newIncome.date}
+                      onChange={(e) => setNewIncome({...newIncome, date: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Client Name (optional)"
+                      value={newIncome.client}
+                      onChange={(e) => setNewIncome({...newIncome, client: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
                     <select
-                      value={goalAssignment.goalId || ''}
-                      onChange={e => setGoalAssignment({ ...goalAssignment, goalId: e.target.value })}
-                      className={`px-4 py-2 rounded-lg border w-full ${darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                      value={newIncome.category}
+                      onChange={(e) => setNewIncome({...newIncome, category: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
                     >
-                      <option value="">-- Just add to income --</option>
+                      <option value="">Auto-categorize (use allocation rules)</option>
+                      {allocationRules.map(rule => (
+                        <option key={rule.id} value={rule.name}>{rule.name}</option>
+                      ))}
+                      <option value="General">General</option>
+                      <option value="Freelance">Freelance</option>
+                      <option value="Investment">Investment</option>
+                      <option value="Bonus">Bonus</option>
+                    </select>
+                    <select
+                      value={newIncome.goalId}
+                      onChange={(e) => setNewIncome({...newIncome, goalId: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    >
+                      <option value="">Don't assign to goal</option>
                       {data.goals.map(goal => (
-                        <option key={goal.id} value={goal.id}>{goal.name}</option>
+                        <option key={goal.id} value={goal.id}>
+                          {goal.name} (${goal.current.toLocaleString()}/${goal.target.toLocaleString()})
+                        </option>
                       ))}
                     </select>
                   </div>
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-3 mt-4">
                     <button
-                      onClick={async () => {
-                        // Assign to goal if selected, else add to income
-                        const payment = data.pendingPayments.find(p => p.id === showPaymentReceived);
-                        if (!payment) return;
-                        const amount = parseFloat(paymentReceivedAmount.amount) || payment.amount;
-                        if (goalAssignment.goalId) {
-                          // Assign to goal
-                          const goal = data.goals.find(g => g.id === parseInt(goalAssignment.goalId));
-                          if (goal) {
-                            await fetch(`${API_BASE_URL}/goals/${goal.id}/progress?current=${goal.current + amount}`, { method: 'PUT' });
-                          }
-                        } else {
-                          // Add to income
-                          await fetch(`${API_BASE_URL}/income`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              amount,
-                              date: new Date().toISOString().slice(0, 10),
-                              client: payment.client,
-                              category: 'Client Payment'
-                            })
-                          });
-                        }
-                        // Mark payment as received
-                        await markPaymentReceived(payment.id);
-                        setShowPaymentReceived(null);
-                        setPaymentReceivedAmount({ amount: '' });
-                        setGoalAssignment({ amount: '', goalId: '' });
-                      }}
+                      onClick={addIncome}
                       className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                     >
-                      Assign & Mark Received
+                      Add Income
                     </button>
                     <button
-                      onClick={() => { setShowPaymentReceived(null); setPaymentReceivedAmount({ amount: '' }); setGoalAssignment({ amount: '', goalId: '' }); }}
+                      onClick={() => setShowAddIncome(false)}
                       className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                     >
                       Cancel
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div className="grid gap-4">
-              {data.pendingPayments.map((payment) => (
-                <div key={payment.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'} flex justify-between items-center`}>
-                  <div>
-                    <div className="flex items-center space-x-3">
-                      <span className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        ${payment.amount.toLocaleString()}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        payment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {payment.status}
-                      </span>
-                      {payment.goalId && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
-                          {data.goals.find(g => g.id === payment.goalId)?.name || 'Goal'}
-                        </span>
-                      )}
-                      {payment.billId && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
-                          {data.bills.find(b => b.id === payment.billId)?.name || 'Bill'}
-                        </span>
+              <div className="grid gap-4">
+                {data.income.map((income) => (
+                  <div key={income.id} className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all flex justify-between items-center mb-4">
+                    {editingIncome && editingIncome.id === income.id ? (
+                      // Edit mode
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input
+                          type="number"
+                          placeholder="Amount"
+                          value={editingIncome.amount}
+                          onChange={(e) => setEditingIncome({...editingIncome, amount: e.target.value})}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        />
+                        <input
+                          type="date"
+                          value={editingIncome.date}
+                          onChange={(e) => setEditingIncome({...editingIncome, date: e.target.value})}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Client"
+                          value={editingIncome.client}
+                          onChange={(e) => setEditingIncome({...editingIncome, client: e.target.value})}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        />
+                        <select
+                          value={editingIncome.category}
+                          onChange={(e) => setEditingIncome({...editingIncome, category: e.target.value})}
+                          className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          {allocationRules.map(rule => (
+                            <option key={rule.id} value={rule.name}>{rule.name}</option>
+                          ))}
+                          <option value="General">General</option>
+                          <option value="Freelance">Freelance</option>
+                          <option value="Investment">Investment</option>
+                          <option value="Bonus">Bonus</option>
+                        </select>
+                      </div>
+                    ) : (
+                      // Display mode
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <span className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            ${income.amount.toLocaleString()}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(income.category)} text-white`}>
+                            {income.category}
+                          </span>
+                        </div>
+                        <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                          {income.client} • {new Date(income.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex space-x-2">
+                      {editingIncome && editingIncome.id === income.id ? (
+                        <>
+                          <button
+                            onClick={updateIncome}
+                            className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition-colors"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={cancelEditingIncome}
+                            className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => startEditingIncome(income)}
+                            className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteItem('income', income.id)}
+                            className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-red-400' : 'hover:bg-gray-100 text-red-500'}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
                       )}
                     </div>
-                    <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                      {payment.client} • Due: {new Date(payment.dueDate).toLocaleDateString()}
-                      {payment.goalId && (
-                        <span className="ml-2 text-blue-600">
-                          → {data.goals.find(g => g.id === payment.goalId)?.name}
-                        </span>
-                      )}
-                      {payment.billId && (
-                        <span className="ml-2 text-purple-600">
-                          → {data.bills.find(b => b.id === payment.billId)?.name}
-                        </span>
-                      )}
-                    </p>
                   </div>
-                  <div className="flex space-x-2">
-                    {payment.status === 'pending' && (
-                      <button
-                        onClick={() => { setShowPaymentReceived(payment.id); setPaymentReceivedAmount({ amount: payment.amount.toString() }); }}
-                        className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition-colors"
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                    )}
+                ))}
+              </div>
+
+              {/* Income Summary */}
+              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Income Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      ${currentMonthIncome.toLocaleString()}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>This Month</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                      ${data.income.reduce((sum, income) => sum + income.amount, 0).toLocaleString()}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total All Time</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                      {data.income.length}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Entries</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                      ${(currentMonthIncome / Math.max(1, new Date().getDate())).toFixed(0)}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Daily Average</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'goals' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Financial Goals</h2>
+                <button
+                  onClick={() => setShowAddGoal(true)}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Goal</span>
+                </button>
+              </div>
+
+              {showAddGoal && (
+                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add New Goal</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Goal Name"
+                      value={newGoal.name}
+                      onChange={(e) => setNewGoal({...newGoal, name: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Amount Needed"
+                      value={newGoal.target}
+                      onChange={(e) => setNewGoal({...newGoal, target: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <input
+                      type="date"
+                      placeholder="Deadline (optional)"
+                      value={newGoal.deadline}
+                      onChange={(e) => setNewGoal({...newGoal, deadline: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                  </div>
+                  <div className="flex space-x-3 mt-4">
                     <button
-                      onClick={() => deleteItem('pendingPayments', payment.id)}
-                      className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                      onClick={addGoal}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Add Goal
+                    </button>
+                    <button
+                      onClick={() => setShowAddGoal(false)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      Cancel
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
 
-        {activeTab === 'bills' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Monthly Bills</h2>
-              <div className="flex items-center space-x-2">
-                <button onClick={() => setShowAddBill(true)} className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2">
-                  <Plus className="w-4 h-4" />
-                  <span>Add Bill</span>
-                </button>
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={e => setSelectedMonth(e.target.value)}
-                  className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                />
+              <div className="grid gap-4">
+                {data.goals.map((goal) => (
+                  <div key={goal.id} className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all mb-4">
+                    <GoalProgressBar goal={goal} />
+                    
+                    {editingGoal && editingGoal.id === goal.id ? (
+                      // Edit mode
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <input
+                            type="text"
+                            placeholder="Goal Name"
+                            value={editingGoal.name}
+                            onChange={(e) => setEditingGoal({...editingGoal, name: e.target.value})}
+                            className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Amount Needed"
+                            value={editingGoal.target}
+                            onChange={(e) => setEditingGoal({...editingGoal, target: e.target.value})}
+                            className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                          />
+                          <input
+                            type="date"
+                            placeholder="Deadline"
+                            value={editingGoal.deadline}
+                            onChange={(e) => setEditingGoal({...editingGoal, deadline: e.target.value})}
+                            className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                          />
+                        </div>
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={updateGoal}
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                          >
+                            <Check className="w-4 h-4 inline mr-2" />
+                            Save
+                          </button>
+                          <button
+                            onClick={cancelEditingGoal}
+                            className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                          >
+                            <X className="w-4 h-4 inline mr-2" />
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      // Display mode - show goal actions
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => startEditingGoal(goal)}
+                            className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setShowGoalAssignment(goal.id)}
+                            className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
+                          >
+                            Assign Money
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => deleteItem('goals', goal.id)}
+                          className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Goal Assignment Modal */}
+                    {showGoalAssignment === goal.id && (
+                      <div className="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            placeholder="Add money to goal"
+                            value={goalAssignment.amount}
+                            onChange={(e) => setGoalAssignment({ amount: e.target.value, goalId: goalAssignment.goalId })}
+                            className={`flex-1 px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                          />
+                          <button
+                            onClick={() => assignMoneyToGoal(goal.id)}
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
+                          >
+                            Assign
+                          </button>
+                          <button
+                            onClick={() => setShowGoalAssignment(null)}
+                            className={`px-4 py-2 rounded-lg transition-colors text-sm ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Goals Summary */}
+              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Goals Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                      {data.goals.length}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Goals</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      ${totalGoalsCurrent.toLocaleString()}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Saved</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                      ${remainingForGoals.toLocaleString()}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Still Needed</p>
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-2xl font-bold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                      {data.goals.filter(g => (g.current / g.target) * 100 >= 100).length}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Completed</p>
+                  </div>
+                </div>
               </div>
             </div>
-            {showAddBill && (
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}> 
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add Bill</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input type="text" placeholder="Name" value={newBill.name} onChange={e => setNewBill({ ...newBill, name: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
-                  <input type="number" placeholder="Amount" value={newBill.amount} onChange={e => setNewBill({ ...newBill, amount: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
-                  <input type="number" placeholder="Due Day (1-31)" value={newBill.dueDate} onChange={e => setNewBill({ ...newBill, dueDate: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
-                </div>
-                <div className="flex space-x-3 mt-4">
-                  <button onClick={addBill} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">Add Bill</button>
-                  <button onClick={() => setShowAddBill(false)} className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Cancel</button>
-                </div>
+          )}
+
+          {activeTab === 'clients' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Pending Payments</h2>
+                <button
+                  onClick={() => setShowAddPending(true)}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Payment</span>
+                </button>
               </div>
-            )}
-            {editingBill && (
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}> 
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Edit Bill</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input type="text" placeholder="Name" value={editingBill.name} onChange={e => setEditingBill({ ...editingBill, name: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
-                  <input type="number" placeholder="Amount" value={editingBill.amount} onChange={e => setEditingBill({ ...editingBill, amount: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
-                  <input type="number" placeholder="Due Day (1-31)" value={editingBill.dueDate} onChange={e => setEditingBill({ ...editingBill, dueDate: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
+
+              {showAddPending && (
+                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add Pending Payment</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Client Name"
+                      value={newPending.client}
+                      onChange={(e) => setNewPending({...newPending, client: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Amount"
+                      value={newPending.amount}
+                      onChange={(e) => setNewPending({...newPending, amount: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <input
+                      type="date"
+                      placeholder="Due Date"
+                      value={newPending.dueDate}
+                      onChange={(e) => setNewPending({...newPending, dueDate: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <select
+                      value={newPending.goalId}
+                      onChange={(e) => setNewPending({...newPending, goalId: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    >
+                      <option value="">Don't assign to goal</option>
+                      {data.goals.map(goal => (
+                        <option key={goal.id} value={goal.id}>
+                          {goal.name} (${goal.current.toLocaleString()}/${goal.target.toLocaleString()})
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={newPending.billId}
+                      onChange={(e) => setNewPending({...newPending, billId: e.target.value})}
+                      className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    >
+                      <option value="">Don't assign to bill</option>
+                      {data.bills.map(bill => (
+                        <option key={bill.id} value={bill.id}>
+                          {bill.name} - ${bill.amount.toLocaleString()} ({bill.paid ? 'Paid' : 'Unpaid'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex space-x-3 mt-4">
+                    <button
+                      onClick={addPendingPayment}
+                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      Add Payment
+                    </button>
+                    <button
+                      onClick={() => setShowAddPending(false)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-                <div className="flex space-x-3 mt-4">
-                  <button onClick={updateBill} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">Save</button>
-                  <button onClick={cancelEditingBill} className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Cancel</button>
-                </div>
-              </div>
-            )}
-            <div className="grid gap-4">
-              {data.bills.map((bill: Bill) => (
-                <div key={bill.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'} flex justify-between items-center`}>
-                  <div className="flex items-center space-x-4">
-                    <button onClick={() => toggleBillPaidUI(bill.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bill.paid ? 'bg-green-500 border-green-500 text-white' : darkMode ? 'border-gray-600 hover:border-green-500' : 'border-gray-300 hover:border-green-500'}`}>{bill.paid && <Check className="w-3 h-3" />}</button>
-                    <div>
-                      <h3 className={`text-lg font-semibold ${bill.paid ? (darkMode ? 'text-gray-400 line-through' : 'text-gray-500 line-through') : (darkMode ? 'text-white' : 'text-gray-900')}`}>{bill.name}</h3>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Due: {bill.due_date}{bill.due_date === 1 ? 'st' : bill.due_date === 2 ? 'nd' : bill.due_date === 3 ? 'rd' : 'th'} of month</p>
+              )}
+
+              {/* Assign Modal for Received Payment */}
+              {showPaymentReceived !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className={`${darkMode ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-8 shadow-lg w-full max-w-md`}>
+                    <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Assign Received Payment</h3>
+                    <p className={`mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>How do you want to assign this money?</p>
+                    <input
+                      type="number"
+                      placeholder="Amount"
+                      value={paymentReceivedAmount.amount}
+                      onChange={e => setPaymentReceivedAmount({ amount: e.target.value })}
+                      className={`mb-4 px-4 py-2 rounded-lg border w-full ${darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                    />
+                    <div className="mb-4">
+                      <label className={`block mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Assign to Goal (optional):</label>
+                      <select
+                        value={goalAssignment.goalId || ''}
+                        onChange={e => setGoalAssignment({ ...goalAssignment, goalId: e.target.value })}
+                        className={`px-4 py-2 rounded-lg border w-full ${darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                      >
+                        <option value="">-- Just add to income --</option>
+                        {data.goals.map(goal => (
+                          <option key={goal.id} value={goal.id}>{goal.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={async () => {
+                          // Assign to goal if selected, else add to income
+                          const payment = data.pendingPayments.find(p => p.id === showPaymentReceived);
+                          if (!payment) return;
+                          const amount = parseFloat(paymentReceivedAmount.amount) || payment.amount;
+                          if (goalAssignment.goalId) {
+                            // Assign to goal
+                            const goal = data.goals.find(g => g.id === parseInt(goalAssignment.goalId));
+                            if (goal) {
+                              await fetch(`${API_BASE_URL}/goals/${goal.id}/progress?current=${goal.current + amount}`, { method: 'PUT' });
+                            }
+                          } else {
+                            // Add to income
+                            await fetch(`${API_BASE_URL}/income`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                amount,
+                                date: new Date().toISOString().slice(0, 10),
+                                client: payment.client,
+                                category: 'Client Payment'
+                              })
+                            });
+                          }
+                          // Mark payment as received
+                          await markPaymentReceived(payment.id);
+                          setShowPaymentReceived(null);
+                          setPaymentReceivedAmount({ amount: '' });
+                          setGoalAssignment({ amount: '', goalId: '' });
+                        }}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                      >
+                        Assign & Mark Received
+                      </button>
+                      <button
+                        onClick={() => { setShowPaymentReceived(null); setPaymentReceivedAmount({ amount: '' }); setGoalAssignment({ amount: '', goalId: '' }); }}
+                        className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-xl font-bold ${bill.paid ? (darkMode ? 'text-gray-400' : 'text-gray-500') : (darkMode ? 'text-white' : 'text-gray-900')}`}>${bill.amount.toLocaleString()}</span>
-                    <button onClick={() => startEditingBill(bill)} className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => deleteBill(bill.id)} className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}><Trash2 className="w-4 h-4" /></button>
-                  </div>
                 </div>
-              ))}
-            </div>
+              )}
 
-            {/* Bills Summary with Progress Bars */}
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-              <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Bills Overview</h3>
-              <div className="space-y-4">
-                {data.bills.map((bill: Bill) => (
-                  <BillProgressBar key={bill.id} bill={bill} />
+              <div className="grid gap-4">
+                {data.pendingPayments.map((payment) => (
+                  <div key={payment.id} className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all flex justify-between items-center mb-4">
+                    <div>
+                      <div className="flex items-center space-x-3">
+                        <span className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          ${payment.amount.toLocaleString()}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          payment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {payment.status}
+                        </span>
+                        {payment.goalId && (
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+                            {data.goals.find(g => g.id === payment.goalId)?.name || 'Goal'}
+                          </span>
+                        )}
+                        {payment.billId && (
+                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
+                            {data.bills.find(b => b.id === payment.billId)?.name || 'Bill'}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                        {payment.client} • Due: {new Date(payment.dueDate).toLocaleDateString()}
+                        {payment.goalId && (
+                          <span className="ml-2 text-blue-600">
+                            → {data.goals.find(g => g.id === payment.goalId)?.name}
+                          </span>
+                        )}
+                        {payment.billId && (
+                          <span className="ml-2 text-purple-600">
+                            → {data.bills.find(b => b.id === payment.billId)?.name}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      {payment.status === 'pending' && (
+                        <button
+                          onClick={() => { setShowPaymentReceived(payment.id); setPaymentReceivedAmount({ amount: payment.amount.toString() }); }}
+                          className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition-colors"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteItem('pendingPayments', payment.id)}
+                        className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            <div>
-              <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Financial Overview
-              </h2>
-              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Projected financial position when all pending payments are received
-              </p>
+          {activeTab === 'bills' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Monthly Bills</h2>
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => setShowAddBill(true)} className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center space-x-2">
+                    <Plus className="w-4 h-4" />
+                    <span>Add Bill</span>
+                  </button>
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={e => setSelectedMonth(e.target.value)}
+                    className={`px-3 py-2 rounded-lg border text-sm ${darkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                  />
+                </div>
+              </div>
+              {showAddBill && (
+                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}> 
+                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Add Bill</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" placeholder="Name" value={newBill.name} onChange={e => setNewBill({ ...newBill, name: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
+                    <input type="number" placeholder="Amount" value={newBill.amount} onChange={e => setNewBill({ ...newBill, amount: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
+                    <input type="number" placeholder="Due Day (1-31)" value={newBill.dueDate} onChange={e => setNewBill({ ...newBill, dueDate: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
+                  </div>
+                  <div className="flex space-x-3 mt-4">
+                    <button onClick={addBill} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">Add Bill</button>
+                    <button onClick={() => setShowAddBill(false)} className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Cancel</button>
+                  </div>
+                </div>
+              )}
+              {editingBill && (
+                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}> 
+                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Edit Bill</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" placeholder="Name" value={editingBill.name} onChange={e => setEditingBill({ ...editingBill, name: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
+                    <input type="number" placeholder="Amount" value={editingBill.amount} onChange={e => setEditingBill({ ...editingBill, amount: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
+                    <input type="number" placeholder="Due Day (1-31)" value={editingBill.dueDate} onChange={e => setEditingBill({ ...editingBill, dueDate: e.target.value })} className={`px-4 py-2 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}/>
+                  </div>
+                  <div className="flex space-x-3 mt-4">
+                    <button onClick={updateBill} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">Save</button>
+                    <button onClick={cancelEditingBill} className={`px-4 py-2 rounded-lg transition-colors ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Cancel</button>
+                  </div>
+                </div>
+              )}
+              <div className="grid gap-4">
+                {data.bills.map((bill: Bill) => (
+                  <div key={bill.id} className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all flex justify-between items-center mb-4">
+                    <div className="flex items-center space-x-4">
+                      <button onClick={() => toggleBillPaidUI(bill.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${bill.paid ? 'bg-green-500 border-green-500 text-white' : darkMode ? 'border-gray-600 hover:border-green-500' : 'border-gray-300 hover:border-green-500'}`}>{bill.paid && <Check className="w-3 h-3" />}</button>
+                      <div>
+                        <h3 className={`text-lg font-semibold ${bill.paid ? (darkMode ? 'text-gray-400 line-through' : 'text-gray-500 line-through') : (darkMode ? 'text-white' : 'text-gray-900')}`}>{bill.name}</h3>
+                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Due: {bill.due_date}{bill.due_date === 1 ? 'st' : bill.due_date === 2 ? 'nd' : bill.due_date === 3 ? 'rd' : 'th'} of month</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xl font-bold ${bill.paid ? (darkMode ? 'text-gray-400' : 'text-gray-500') : (darkMode ? 'text-white' : 'text-gray-900')}`}>${bill.amount.toLocaleString()}</span>
+                      <button onClick={() => startEditingBill(bill)} className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => deleteBill(bill.id)} className={`p-2 rounded-lg transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bills Summary with Progress Bars */}
+              <div className="bg-card rounded-2xl p-6 shadow-card border border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out">
+                <h3 className="text-lg font-semibold mb-4 text-white">Bills Overview</h3>
+                <div className="space-y-4">
+                  {data.bills.map((bill: Bill) => (
+                    <BillProgressBar key={bill.id} bill={bill} />
+                  ))}
+                </div>
+              </div>
             </div>
+          )}
 
-            {(() => {
-              const overview = calculateOverview();
-              const isPositive = overview.netPosition >= 0;
-              
-              return (
-                <>
-                  {/* Summary Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard
-                      title="Total Income (Current)"
-                      value={`$${overview.totalIncome.toLocaleString()}`}
-                      icon={TrendingUp}
-                      color={darkMode ? "bg-gray-800" : "bg-white"}
-                      textColor={darkMode ? "text-white" : "text-gray-900"}
-                    />
-                    <StatCard
-                      title="Pending Payments"
-                      value={`$${overview.totalPending.toLocaleString()}`}
-                      icon={Calendar}
-                      color={darkMode ? "bg-gray-800" : "bg-white"}
-                      textColor={darkMode ? "text-white" : "text-gray-900"}
-                    />
-                    <StatCard
-                      title="Total Income (With Pending)"
-                      value={`$${overview.totalIncomeWithPending.toLocaleString()}`}
-                      icon={TrendingUp}
-                      color={darkMode ? "bg-gray-800" : "bg-white"}
-                      textColor={darkMode ? "text-white" : "text-gray-900"}
-                    />
-                    <StatCard
-                      title="Net Position"
-                      value={`$${overview.netPosition.toLocaleString()}`}
-                      icon={Target}
-                      color={isPositive ? "bg-green-100" : "bg-red-100"}
-                      textColor={isPositive ? "text-green-700" : "text-red-700"}
-                    />
-                  </div>
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Financial Overview
+                </h2>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Projected financial position when all pending payments are received
+                </p>
+              </div>
 
-                  {/* Net Position Analysis */}
-                  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                    <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Net Position Analysis</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Income Sources</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Current Income:</span>
-                            <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>${overview.totalIncome.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending Payments:</span>
-                            <span className={`font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>${overview.totalPending.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between border-t pt-2">
-                            <span className={`font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Total Available:</span>
-                            <span className={`font-bold text-lg ${darkMode ? 'text-green-400' : 'text-green-600'}`}>${overview.totalIncomeWithPending.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Financial Obligations</h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Goals Remaining:</span>
-                            <span className={`font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>${overview.totalGoalsRemaining.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Bills Remaining:</span>
-                            <span className={`font-medium ${darkMode ? 'text-red-400' : 'text-red-600'}`}>${overview.totalBillsRemaining.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between border-t pt-2">
-                            <span className={`font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Total Needed:</span>
-                            <span className={`font-bold text-lg ${darkMode ? 'text-red-400' : 'text-red-600'}`}>${overview.totalRemainingNeeds.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
+              {(() => {
+                const overview = calculateOverview();
+                const isPositive = overview.netPosition >= 0;
+                
+                return (
+                  <>
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <StatCard
+                        title="Total Income (Current)"
+                        value={`$${overview.totalIncome.toLocaleString()}`}
+                        icon={TrendingUp}
+                        color={darkMode ? "bg-gray-800" : "bg-white"}
+                        textColor={darkMode ? "text-white" : "text-gray-900"}
+                      />
+                      <StatCard
+                        title="Pending Payments"
+                        value={`$${overview.totalPending.toLocaleString()}`}
+                        icon={Calendar}
+                        color={darkMode ? "bg-gray-800" : "bg-white"}
+                        textColor={darkMode ? "text-white" : "text-gray-900"}
+                      />
+                      <StatCard
+                        title="Total Income (With Pending)"
+                        value={`$${overview.totalIncomeWithPending.toLocaleString()}`}
+                        icon={TrendingUp}
+                        color={darkMode ? "bg-gray-800" : "bg-white"}
+                        textColor={darkMode ? "text-white" : "text-gray-900"}
+                      />
+                      <StatCard
+                        title="Net Position"
+                        value={`$${overview.netPosition.toLocaleString()}`}
+                        icon={Target}
+                        color={isPositive ? "bg-green-100" : "bg-red-100"}
+                        textColor={isPositive ? "text-green-700" : "text-red-700"}
+                      />
                     </div>
-                    
-                    {/* Net Position Result */}
-                    <div className={`mt-6 p-4 rounded-lg ${isPositive ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${isPositive ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'}`}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className={`font-semibold ${isPositive ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
-                            {isPositive ? 'Surplus Available' : 'Deficit to Address'}
-                          </h4>
-                          <p className={`text-sm ${isPositive ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
-                            {isPositive 
-                              ? `You'll have $${overview.netPosition.toLocaleString()} available after meeting all goals and bills`
-                              : `You'll need $${Math.abs(overview.netPosition).toLocaleString()} more to meet all goals and bills`
-                            }
-                          </p>
-                        </div>
-                        <div className={`text-2xl font-bold ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          ${overview.netPosition.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Goals Projection */}
-                  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                    <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Goals Projection</h3>
-                    <div className="space-y-4">
-                      {overview.goalsWithPending.map((goal) => (
-                        <div key={goal.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                          <div className="flex justify-between items-center mb-2">
-                            <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{goal.name}</h4>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              goal.isComplete 
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
-                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                            }`}>
-                              {goal.isComplete ? 'Complete' : 'In Progress'}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Current:</span>
-                              <span className={`ml-2 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>${goal.current.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending:</span>
-                              <span className={`ml-2 font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>${goal.pending.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Target:</span>
-                              <span className={`ml-2 font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>${goal.target.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {goal.remaining > 0 ? 'Still Needed:' : 'Surplus:'}
-                              </span>
-                              <span className={`ml-2 font-medium ${goal.remaining > 0 ? (darkMode ? 'text-red-400' : 'text-red-600') : (darkMode ? 'text-green-400' : 'text-green-600')}`}>
-                                ${goal.remaining > 0 ? goal.remaining.toLocaleString() : goal.surplus.toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Bills Projection */}
-                  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                    <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Bills Projection</h3>
-                    <div className="space-y-4">
-                      {overview.billsWithPending.map((bill) => (
-                        <div key={bill.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                          <div className="flex justify-between items-center mb-2">
-                            <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{bill.name}</h4>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              bill.isFullyCovered 
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
-                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                            }`}>
-                              {bill.isFullyCovered ? 'Fully Covered' : 'Partially Covered'}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Amount:</span>
-                              <span className={`ml-2 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>${bill.amount.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending:</span>
-                              <span className={`ml-2 font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>${bill.pending.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Covered:</span>
-                              <span className={`ml-2 font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>${bill.totalCovered.toLocaleString()}</span>
-                            </div>
-                            <div>
-                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {bill.remaining > 0 ? 'Still Needed:' : 'Surplus:'}
-                              </span>
-                              <span className={`ml-2 font-medium ${bill.remaining > 0 ? (darkMode ? 'text-red-400' : 'text-red-600') : (darkMode ? 'text-green-400' : 'text-green-600')}`}>
-                                ${bill.remaining > 0 ? bill.remaining.toLocaleString() : bill.surplus.toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Unassigned Pending Payments */}
-                  {overview.unassignedPending > 0 && (
+                    {/* Net Position Analysis */}
                     <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                      <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Unassigned Pending Payments</h3>
-                      <div className={`p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800`}>
+                      <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Net Position Analysis</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Income Sources</h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Current Income:</span>
+                              <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>${overview.totalIncome.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending Payments:</span>
+                              <span className={`font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>${overview.totalPending.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span className={`font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Total Available:</span>
+                              <span className={`font-bold text-lg ${darkMode ? 'text-green-400' : 'text-green-600'}`}>${overview.totalIncomeWithPending.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Financial Obligations</h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Goals Remaining:</span>
+                              <span className={`font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>${overview.totalGoalsRemaining.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Bills Remaining:</span>
+                              <span className={`font-medium ${darkMode ? 'text-red-400' : 'text-red-600'}`}>${overview.totalBillsRemaining.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span className={`font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Total Needed:</span>
+                              <span className={`font-bold text-lg ${darkMode ? 'text-red-400' : 'text-red-600'}`}>${overview.totalRemainingNeeds.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Net Position Result */}
+                      <div className={`mt-6 p-4 rounded-lg ${isPositive ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'} border ${isPositive ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'}`}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className={`font-semibold text-yellow-800 dark:text-yellow-200`}>
-                              Available for Assignment
+                            <h4 className={`font-semibold ${isPositive ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
+                              {isPositive ? 'Surplus Available' : 'Deficit to Address'}
                             </h4>
-                            <p className={`text-sm text-yellow-600 dark:text-yellow-300`}>
-                              You have ${overview.unassignedPending.toLocaleString()} in pending payments that aren't assigned to any goals or bills
+                            <p className={`text-sm ${isPositive ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
+                              {isPositive 
+                                ? `You'll have $${overview.netPosition.toLocaleString()} available after meeting all goals and bills`
+                                : `You'll need $${Math.abs(overview.netPosition).toLocaleString()} more to meet all goals and bills`
+                              }
                             </p>
                           </div>
-                          <div className={`text-2xl font-bold text-yellow-600 dark:text-yellow-400`}>
-                            ${overview.unassignedPending.toLocaleString()}
+                          <div className={`text-2xl font-bold ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            ${overview.netPosition.toLocaleString()}
                           </div>
                         </div>
                       </div>
                     </div>
-                  )}
 
-                  {/* Recommendations */}
-                  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                    <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Recommendations</h3>
-                    <div className="space-y-3">
-                      {overview.netPosition < 0 && (
-                        <div className={`p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800`}>
-                          <p className={`text-sm font-medium text-red-800 dark:text-red-200`}>
-                            ⚠️ You'll need ${Math.abs(overview.netPosition).toLocaleString()} more to meet all your financial obligations. Consider:
-                          </p>
-                          <ul className={`text-sm text-red-700 dark:text-red-300 mt-2 ml-4 list-disc`}>
-                            <li>Seeking additional income sources</li>
-                            <li>Prioritizing which goals or bills are most important</li>
-                            <li>Negotiating payment terms with clients</li>
-                          </ul>
-                        </div>
-                      )}
-                      {overview.unassignedPending > 0 && (
-                        <div className={`p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800`}>
-                          <p className={`text-sm font-medium text-blue-800 dark:text-blue-200`}>
-                            💡 Consider assigning your ${overview.unassignedPending.toLocaleString()} in unassigned pending payments to specific goals or bills
-                          </p>
-                        </div>
-                      )}
-                      {overview.netPosition > 0 && (
-                        <div className={`p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800`}>
-                          <p className={`text-sm font-medium text-green-800 dark:text-green-200`}>
-                            🎉 Great job! You'll have ${overview.netPosition.toLocaleString()} surplus after meeting all obligations
-                          </p>
-                        </div>
-                      )}
+                    {/* Goals Projection */}
+                    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                      <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Goals Projection</h3>
+                      <div className="space-y-4">
+                        {overview.goalsWithPending.map((goal) => (
+                          <div key={goal.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{goal.name}</h4>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                goal.isComplete 
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                                  : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                              }`}>
+                                {goal.isComplete ? 'Complete' : 'In Progress'}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Current:</span>
+                                <span className={`ml-2 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>${goal.current.toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending:</span>
+                                <span className={`ml-2 font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>${goal.pending.toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Target:</span>
+                                <span className={`ml-2 font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>${goal.target.toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  {goal.remaining > 0 ? 'Still Needed:' : 'Surplus:'}
+                                </span>
+                                <span className={`ml-2 font-medium ${goal.remaining > 0 ? (darkMode ? 'text-red-400' : 'text-red-600') : (darkMode ? 'text-green-400' : 'text-green-600')}`}>
+                                  ${goal.remaining > 0 ? goal.remaining.toLocaleString() : goal.surplus.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        )}
-      </div>
 
-      {/* Bottom CTA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div className={`${
-          darkMode 
-            ? 'bg-gradient-to-r from-orange-600 to-orange-500' 
-            : 'bg-gradient-to-r from-orange-500 to-orange-400'
-        } rounded-2xl p-8 text-center text-white`}>
-          <h3 className="text-2xl font-bold mb-2">Feel in control of your money</h3>
-          <p className="text-orange-100 mb-4">without spreadsheets or shame</p>
-          <p className="text-sm text-orange-100">
-            Finally, a money app that doesn't make you want to throw your phone 📱
-          </p>
-        </div>
+                    {/* Bills Projection */}
+                    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                      <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Bills Projection</h3>
+                      <div className="space-y-4">
+                        {overview.billsWithPending.map((bill) => (
+                          <div key={bill.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{bill.name}</h4>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                bill.isFullyCovered 
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                                  : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                              }`}>
+                                {bill.isFullyCovered ? 'Fully Covered' : 'Partially Covered'}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Amount:</span>
+                                <span className={`ml-2 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>${bill.amount.toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending:</span>
+                                <span className={`ml-2 font-medium ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>${bill.pending.toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Covered:</span>
+                                <span className={`ml-2 font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>${bill.totalCovered.toLocaleString()}</span>
+                              </div>
+                              <div>
+                                <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  {bill.remaining > 0 ? 'Still Needed:' : 'Surplus:'}
+                                </span>
+                                <span className={`ml-2 font-medium ${bill.remaining > 0 ? (darkMode ? 'text-red-400' : 'text-red-600') : (darkMode ? 'text-green-400' : 'text-green-600')}`}>
+                                  ${bill.remaining > 0 ? bill.remaining.toLocaleString() : bill.surplus.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Unassigned Pending Payments */}
+                    {overview.unassignedPending > 0 && (
+                      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                        <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Unassigned Pending Payments</h3>
+                        <div className={`p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800`}>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className={`font-semibold text-yellow-800 dark:text-yellow-200`}>
+                                Available for Assignment
+                              </h4>
+                              <p className={`text-sm text-yellow-600 dark:text-yellow-300`}>
+                                You have ${overview.unassignedPending.toLocaleString()} in pending payments that aren't assigned to any goals or bills
+                              </p>
+                            </div>
+                            <div className={`text-2xl font-bold text-yellow-600 dark:text-yellow-400`}>
+                              ${overview.unassignedPending.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recommendations */}
+                    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                      <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Recommendations</h3>
+                      <div className="space-y-3">
+                        {overview.netPosition < 0 && (
+                          <div className={`p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800`}>
+                            <p className={`text-sm font-medium text-red-800 dark:text-red-200`}>
+                              ⚠️ You'll need ${Math.abs(overview.netPosition).toLocaleString()} more to meet all your financial obligations. Consider:
+                            </p>
+                            <ul className={`text-sm text-red-700 dark:text-red-300 mt-2 ml-4 list-disc`}>
+                              <li>Seeking additional income sources</li>
+                              <li>Prioritizing which goals or bills are most important</li>
+                              <li>Negotiating payment terms with clients</li>
+                            </ul>
+                          </div>
+                        )}
+                        {overview.unassignedPending > 0 && (
+                          <div className={`p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800`}>
+                            <p className={`text-sm font-medium text-blue-800 dark:text-blue-200`}>
+                              �� Consider assigning your ${overview.unassignedPending.toLocaleString()} in unassigned pending payments to specific goals or bills
+                            </p>
+                          </div>
+                        )}
+                        {overview.netPosition > 0 && (
+                          <div className={`p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800`}>
+                            <p className={`text-sm font-medium text-green-800 dark:text-green-200`}>
+                              🎉 Great job! You'll have ${overview.netPosition.toLocaleString()} surplus after meeting all obligations
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+        </MainContent>
       </div>
     </div>
   );
