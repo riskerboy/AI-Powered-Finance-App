@@ -8,32 +8,43 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#0F1117',
-        card: '#1A1C23',
-        accent: '#FFB800',
-        purple: '#B22CFF',
-        blue: '#1D8FFF',
-        green: '#00A67E',
-        red: '#FF3EA5',
-        white: '#FFFFFF',
-        gray: {
-          100: '#E4E4E7',
-          400: '#9CA3AF',
-          700: '#374151',
+        // Warm, friendly colors
+        background: '#FFFFFF',
+        card: '#F8F9FA',
+        primary: '#4CAF50', // Warm green
+        secondary: '#2196F3', // Gentle blue
+        accent: '#FF9800', // Warm orange
+        success: '#4CAF50', // Friendly green
+        warning: '#FF9800', // Warm orange
+        error: '#F44336', // Soft red
+        text: {
+          primary: '#212121',
+          secondary: '#757575',
+          light: '#9E9E9E'
         },
-        gradientStart: '#FFB800', // For gradients
-        gradientEnd: '#FF3EA5',   // For gradients
+        gray: {
+          50: '#FAFAFA',
+          100: '#F5F5F5',
+          200: '#EEEEEE',
+          300: '#E0E0E0',
+          400: '#BDBDBD',
+          500: '#9E9E9E',
+          600: '#757575',
+          700: '#616161',
+          800: '#424242',
+          900: '#212121'
+        }
       },
       borderRadius: {
-        lg: '16px',
-        xl: '24px',
-        '2xl': '32px',
+        lg: '12px',
+        xl: '16px',
+        '2xl': '20px',
       },
       boxShadow: {
-        card: '0 4px 24px 0 rgba(0,0,0,0.12)',
+        soft: '0 2px 8px rgba(0,0,0,0.08)',
+        card: '0 4px 12px rgba(0,0,0,0.06)',
       },
     },
   },
   plugins: [],
-  darkMode: 'class',
 } 
