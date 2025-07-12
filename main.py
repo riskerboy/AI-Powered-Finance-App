@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, func
 from sqlalchemy.ext.declarative import declarative_base
@@ -7,6 +7,14 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 import uvicorn
+
+# --- AI Analysis imports ---
+import os
+import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -22,8 +30,10 @@ class Income(Base):
     id = Column(Integer, primary_key=True, index=True)
     amount = Column(Float, nullable=False)
     date = Column(String, nullable=False)
-    client = Column(String, nullable=False)
+    client = Column(String, nullable=True)  # Optional for expenses
     category = Column(String, nullable=False)
+    type = Column(String, default="income")  # "income" or "expense"
+    note = Column(String, nullable=True)  # Optional note field
     status = Column(String, default="received")
 
 class Goal(Base):
@@ -61,15 +71,19 @@ Base.metadata.create_all(bind=engine)
 class IncomeCreate(BaseModel):
     amount: float
     date: str
-    client: str
+    client: Optional[str] = None
     category: str
+    type: str = "income"
+    note: Optional[str] = None
 
 class IncomeResponse(BaseModel):
     id: int
     amount: float
     date: str
-    client: str
+    client: Optional[str]
     category: str
+    type: str
+    note: Optional[str]
     status: str
 
 class GoalCreate(BaseModel):
@@ -115,6 +129,16 @@ class BillResponse(BaseModel):
     due_date: int
     paid: bool
     month: str
+
+# --- AI Analysis Models ---
+class AIAnalysisRequest(BaseModel):
+    income: float
+    expenses: float
+    top_categories: List[str]
+    goals: List[str]
+
+class AIAnalysisResponse(BaseModel):
+    analysis: str
 
 # Database dependency
 def get_db():
@@ -305,6 +329,48 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         "total_goals_target": total_goals_target,
         "total_goals_current": total_goals_current
     }
+
+# --- AI Analysis Endpoint ---
+@app.post("/ai-analysis", response_model=AIAnalysisResponse)
+async def ai_analysis(request: AIAnalysisRequest):
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured.")
+
+    # Compose a friendly, supportive prompt
+    prompt = (
+        f"Here is my financial data for this month:\n"
+        f"- Income: ${request.income}\n"
+        f"- Expenses: ${request.expenses}\n"
+        f"- Top categories: {', '.join(request.top_categories)}\n"
+        f"- Goals: {', '.join(request.goals)}\n\n"
+        "Please give me a friendly, supportive summary of how I’m doing, and suggest one or two gentle improvements if needed. Be sweet and encouraging, not critical."
+    )
+
+    # Call OpenAI API
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENAI_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "gpt-3.5-turbo",
+                    "messages": [
+                        {"role": "system", "content": "You are a sweet, supportive financial coach for freelancers. Always be positive and encouraging."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 300,
+                    "temperature": 0.7
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            ai_message = data["choices"][0]["message"]["content"].strip()
+            return {"analysis": ai_message}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
