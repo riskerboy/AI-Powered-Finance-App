@@ -1,8 +1,11 @@
 # 💰 Freelancer Money Tracker
 
+<img width="1129" height="658" alt="image" src="https://github.com/user-attachments/assets/a10a0980-459a-404c-abe1-2590f1cc6ef6" />
 A beautiful, modern web application for freelancers to track their income, manage financial goals, and stay on top of their finances. Built with React, FastAPI, and Tailwind CSS.
 
 ## ✨ Features
+
+<img width="2527" height="1302" alt="image" src="https://github.com/user-attachments/assets/1fcdbc1a-68e7-4686-902f-c98b63c90d3f" />
 
 ### 🎨 Beautiful Design
 - **Peek-inspired UI**: Clean, modern interface with soft gradients and orange accents
