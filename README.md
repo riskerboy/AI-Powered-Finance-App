@@ -422,8 +422,3 @@ A beautiful, modern web application for freelancers to track their income, manag
 - **Predefined**: General, Freelance, Investment, Bonus
 - **Custom**: Create unlimited custom categories
 - **Auto-assigned**: Based on allocation rules
-
-## 🔧 Development
-
-### Project Structure
-```
